@@ -1,5 +1,8 @@
 <?php
 // check path
+/*********************
+ * This is not secure
+ *********************/
 if (!isset($_GET['path'])) {
     response_404();
 }
