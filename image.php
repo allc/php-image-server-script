@@ -1,13 +1,42 @@
 <?php
-// check path
-/*********************
- * This is not secure
- *********************/
+define('ALLOWED_FILE_DIRECTORIES', array('images/'));
+define('ALLOWED_FILE_EXTENSIONS', array('jpeg', 'jpg', 'png'));
+
+/*
+ * Check path
+ * Hopefully this is relatively secure
+ */
+
+// check if path is given
 if (!isset($_GET['path'])) {
     response_404();
 }
+
+// get path
 $path = $_GET['path'];
-if ($path === '') {
+$real_path = realpath($path);
+
+// check if the path is valid
+if (!is_file($real_path)) {
+    response_404();
+}
+
+//check if the file extension is allowed
+$extension = strtolower(pathinfo($real_path, PATHINFO_EXTENSION));
+if (is_null($extension) || !in_array($extension, ALLOWED_FILE_EXTENSIONS)) {
+    response_404();
+}
+
+// check if the path is allowed
+$is_allowed_file_path = false;
+foreach (ALLOWED_FILE_DIRECTORIES as $allowed_file_path) {
+    $allowed_file_path .= DIRECTORY_SEPARATOR;
+    $allowed_file_path_length = strlen($allowed_file_path);
+    if ($allowed_file_path === substr($real_path, 0, $allowed_file_path_length)) {
+        $is_allowed_file_path = true;
+    }
+}
+if (!$is_allowed_file_path) {
     response_404();
 }
 
@@ -42,9 +71,9 @@ readfile($path);
 /*
  * handle 404
  */
-function response_404() {
+function response_404($message_404 = '404 Not Found') {
     http_response_code(404);
     // include 404 page
-    echo '404 Not Found';
+    echo $message_404;
     die();
 }
